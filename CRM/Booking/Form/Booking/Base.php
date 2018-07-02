@@ -59,6 +59,11 @@ abstract class CRM_Booking_Form_Booking_Base extends CRM_Core_Form {
     $params  = array('id' => $this->_id);
 
     CRM_Booking_BAO_Booking::retrieve($params, $this->_values );
+    
+    if (isset($this->_submitFiles['uploadFile'])) {
+        $uploadFile = $this->_submitFiles['uploadFile'];
+    }
+
 
     if (empty($this->_values)) {
       CRM_Core_Error::statusBounce(ts('The requested booking record does not exist (possibly the record was deleted).'));
@@ -162,6 +167,9 @@ abstract class CRM_Booking_Form_Booking_Base extends CRM_Core_Form {
         ts('From Email Address'), array(
           '' => ts('- select -')) + $fromEmailAddress, FALSE
       );
+      
+      $this->add('file', 'uploadFile', ts('Import Data File'), '', TRUE);
+      $this->addUploadElement('uploadFile');
       //header of email template
       $this->add('textarea', 'receipt_header_message', ts('Header'));
       //footer of email template
@@ -365,7 +373,8 @@ abstract class CRM_Booking_Form_Booking_Base extends CRM_Core_Form {
 
     if ($this->_action & CRM_Core_Action::ADD || $this->_action & CRM_Core_Action::UPDATE || $this->_action & CRM_Core_Action::CLOSE) {
       $bookingInfo = $this->exportValues();
-
+      $uploadFile = $this->_submitFiles['uploadFile'];
+  
       if(CRM_Utils_Array::value('record_contribution', $bookingInfo)){ //TODO:: Check if contribution exist
         $values = array();
         if ($this->_action & CRM_Core_Action::ADD){
@@ -431,12 +440,57 @@ abstract class CRM_Booking_Form_Booking_Base extends CRM_Core_Form {
             array_push($contactIds, $emailTo);
           }
         }
-
+        $file_name = CRM_Utils_File::makeFileName($uploadFile['name']);
+        $files_params = array(
+          'file_type_id' => '',
+          'description' => 'Booking Information',
+          'name' => $uploadFile['name'],
+          'mime_type' => $uploadFile['type'],
+          'uri' => $file_name,
+          'document' => 'Booking Information',
+        );
+        $result = civicrm_api3('File', 'create', $files_params);
+        $booking_file = array();
+        if(isset($result['values'])){
+          $file_id = CRM_Utils_Array::value('id', $result['values']);
+          $config = CRM_Core_Config::singleton();
+          $path = $config->customFileUploadDir . $file_name;
+          $file_path = file_create_url($path);
+          $booking_file[$file_id] = array(
+            'fileID' => $file_id,
+            'fullPath' => $path,
+            'mime_type' => $uploadFile['type'],
+            'cleanName' => $uploadFile['name'],
+            'fileName' => $file_name,
+            'entityID' => 1,
+            'url' => '/civicrm/file?reset=1&amp;id='.$file_id.'&amp;eid='.$this->_id,
+            'href' => '<a href="/civicrm/file?reset=1&amp;id=$file_id&amp;eid=$this->_id">image001.jpg</a>',   
+          );
+          
+          copy($uploadFile['tmp_name'], $path);
+          
+          $tableName = 'civicrm_booking';
+          if (CRM_Core_DAO::singleValueQuery("
+            SELECT id
+            FROM civicrm_entity_file
+            WHERE entity_table = '{$tableName}' AND entity_id = {$this->_id}")
+          ) {
+            $sql = "
+              UPDATE civicrm_entity_file
+              SET file_id = {$file_id}
+              WHERE entity_table = '{$tableName}' AND entity_id = {$this->_id}";
+          }
+          else {
+            $sql = "
+              INSERT INTO civicrm_entity_file ( entity_table, entity_id, file_id )
+              VALUES ( '{$tableName}', {$this->_id}, {$file_id} )";
+          }
+          CRM_Core_DAO::executeQuery($sql);
+        }
+        $values['uploadFile'] = $booking_file;
         foreach ($contactIds as $key => $cid) {
           $return = CRM_Booking_BAO_Booking::sendMail($cid, $values);   //send email
         }
-
-
       }
       $params = array(
           'id' => $this->_id,

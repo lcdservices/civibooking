@@ -711,6 +711,7 @@ class CRM_Booking_BAO_Booking extends CRM_Booking_DAO_Booking {
         'isTest' => $isTest,
         'tplParams' => $tplParams,
         'PDFFilename' => 'bookingReceipt.pdf',
+        'attachments' => $values['uploadFile'],
       );
 
       //get include payment check box
@@ -745,7 +746,6 @@ class CRM_Booking_BAO_Booking extends CRM_Booking_DAO_Booking {
       if($bcc){
         $sendTemplateParams['bcc'] = $bcc;
       }
-
       list($sent, $subject, $message, $html)  = CRM_Core_BAO_MessageTemplate::sendTemplate($sendTemplateParams);
       if($sent && CRM_Utils_Array::value('log_confirmation_email', $config)){  //check log_email_confirmaiton
           $session =& CRM_Core_Session::singleton( );

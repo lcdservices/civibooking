@@ -11,6 +11,10 @@
     <div class="label">{$form.email_to.label}</div>
     <div class="content">{$form.email_to.html}</div>
    </div>
+  <div class="crm-section">
+    <div class="label">{$form.uploadFile.label}</div>
+    <div class="content">{$form.uploadFile.html}</div>
+   </div>
    
 {*
   <div class="crm-section">
