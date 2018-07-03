@@ -168,7 +168,7 @@ abstract class CRM_Booking_Form_Booking_Base extends CRM_Core_Form {
           '' => ts('- select -')) + $fromEmailAddress, FALSE
       );
       
-      $this->add('file', 'uploadFile', ts('Import Data File'), '', TRUE);
+      $this->add('file', 'uploadFile', ts('Attach File'));
       $this->addUploadElement('uploadFile');
       //header of email template
       $this->add('textarea', 'receipt_header_message', ts('Header'));
@@ -451,11 +451,12 @@ abstract class CRM_Booking_Form_Booking_Base extends CRM_Core_Form {
         );
         $result = civicrm_api3('File', 'create', $files_params);
         $booking_file = array();
-        if(isset($result['values'])){
+        if(!empty($result['values'])){
           $file_id = CRM_Utils_Array::value('id', $result['values']);
           $config = CRM_Core_Config::singleton();
           $path = $config->customFileUploadDir . $file_name;
           $file_path = file_create_url($path);
+          $file_url = CRM_Utils_System::url('civicrm/file', 'reset=1&id=' . $file_id . '&eid=' . $this->_id, TRUE, NULL, FALSE, TRUE);
           $booking_file[$file_id] = array(
             'fileID' => $file_id,
             'fullPath' => $path,
@@ -463,8 +464,8 @@ abstract class CRM_Booking_Form_Booking_Base extends CRM_Core_Form {
             'cleanName' => $uploadFile['name'],
             'fileName' => $file_name,
             'entityID' => 1,
-            'url' => '/civicrm/file?reset=1&amp;id='.$file_id.'&amp;eid='.$this->_id,
-            'href' => '<a href="/civicrm/file?reset=1&amp;id=$file_id&amp;eid=$this->_id">image001.jpg</a>',   
+            'url' => $file_url,
+            'href' => '<a href="$file_url">image001.jpg</a>',   
           );
           
           copy($uploadFile['tmp_name'], $path);
