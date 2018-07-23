@@ -41,7 +41,10 @@ class CRM_Booking_Form_SelectResource extends CRM_Core_Form {
      * [dateformatTime] => %l:%M %P
      */
     $this->crmDateFormat = $config->dateformatDatetime; //retrieve crmDateFormat
+    $this->dateformatshortdate = $config->dateformatshortdate; //retrieve crmDateFormat
+    
     $this->assign('dateFormat', $this->crmDateFormat);
+    $this->assign('dateformatshortdate', $this->dateformatshortdate);
 
     $days = CRM_Booking_Utils_DateTime::getDays();
     $months = CRM_Utils_Date::getFullMonthNames();

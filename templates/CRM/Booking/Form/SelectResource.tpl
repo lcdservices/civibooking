@@ -87,8 +87,8 @@
   </div>
   {literal}
   <script type="text/javascript">
-  var crmDateFormat = "{/literal}{$dateFormat}{literal}";   //retrieve crmDateFormat
-  
+  var crmDateFormat = "{/literal}{$dateformatshortdate}{literal}";   //retrieve crmDateFormat
+  scheduler.config.default_date= crmDateFormat;
   var bookingId = "{/literal}{$bookingId}{literal}";
   var bookingSlotDate  = "{/literal}{$bookingSlotDate}{literal}";
   var newSlotcolour = "{/literal}{$colour}{literal}";
