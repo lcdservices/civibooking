@@ -80,7 +80,7 @@ class CRM_Booking_Form_Task {
         ),
       );
 
-      CRM_Utils_Hook::searchTasks('contribution', self::$_tasks);
+      CRM_Utils_Hook::searchTasks('booking', self::$_tasks);
       asort(self::$_tasks);
     }
 
